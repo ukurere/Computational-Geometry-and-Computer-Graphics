@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrisonYard", "PrisonYard\PrisonYard.csproj", "{32A2F77E-63DD-44AD-B87C-8A3EB179C1EC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{32A2F77E-63DD-44AD-B87C-8A3EB179C1EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32A2F77E-63DD-44AD-B87C-8A3EB179C1EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32A2F77E-63DD-44AD-B87C-8A3EB179C1EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32A2F77E-63DD-44AD-B87C-8A3EB179C1EC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {95B61D4E-6DED-471F-9F3E-27640BA7B259}
+	EndGlobalSection
+EndGlobal
