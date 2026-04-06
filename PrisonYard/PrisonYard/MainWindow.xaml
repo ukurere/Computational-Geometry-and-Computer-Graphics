@@ -1,12 +1,38 @@
 ﻿<Window x:Class="PrisonYard.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PrisonYard"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Orthogonal Prison Yard" Height="700" Width="1000">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <StackPanel Orientation="Horizontal">
+            <Button Width="140"
+                    Height="32"
+                    Margin="0,0,8,0"
+                    Content="Зчитати з файлу"
+                    Click="LoadFromFile_Click"/>
+
+            <Button Width="160"
+                    Height="32"
+                    Content="Намалювати з тексту"
+                    Click="DrawFromText_Click"/>
+        </StackPanel>
+
+        <TextBox x:Name="InputTextBox"
+                 Grid.Row="1"
+                 Margin="0,12,0,12"
+                 FontFamily="Consolas"
+                 FontSize="16"
+                 AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Auto"
+                 Text="8&#10;0 0&#10;0 4&#10;2 4&#10;2 6&#10;6 6&#10;6 2&#10;4 2&#10;4 0"/>
+
+        <Border Grid.Row="2" BorderBrush="Black" BorderThickness="1">
+            <Canvas x:Name="DrawingCanvas" Background="White"/>
+        </Border>
     </Grid>
 </Window>

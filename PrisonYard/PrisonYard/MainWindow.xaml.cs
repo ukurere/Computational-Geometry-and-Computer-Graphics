@@ -1,24 +1,70 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Microsoft.Win32;
+using PrisonYard.Models;
+using PrisonYard.Services;
 
-namespace PrisonYard
+namespace PrisonYard;
+
+public partial class MainWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    private OrthogonalPolygon? _currentPolygon;
+
+    public MainWindow()
     {
-        public MainWindow()
+        InitializeComponent();
+
+        Loaded += (_, _) => RedrawIfPossible();
+        DrawingCanvas.SizeChanged += (_, _) => RedrawIfPossible();
+    }
+
+    private void LoadFromFile_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
         {
-            InitializeComponent();
+            Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            InputTextBox.Text = File.ReadAllText(dialog.FileName);
+            ParseAndDraw(InputTextBox.Text);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void DrawFromText_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ParseAndDraw(InputTextBox.Text);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ParseAndDraw(string text)
+    {
+        _currentPolygon = PolygonParser.ParseFromText(text);
+        PolygonRenderer.Draw(DrawingCanvas, _currentPolygon);
+    }
+
+    private void RedrawIfPossible()
+    {
+        if (_currentPolygon is not null)
+        {
+            PolygonRenderer.Draw(DrawingCanvas, _currentPolygon);
         }
     }
 }
