@@ -17,6 +17,8 @@ public partial class MainWindow : Window
 
         Loaded += (_, _) => RedrawIfPossible();
         DrawingCanvas.SizeChanged += (_, _) => RedrawIfPossible();
+
+        ResetStatus();
     }
 
     private void LoadFromFile_Click(object sender, RoutedEventArgs e)
@@ -33,12 +35,22 @@ public partial class MainWindow : Window
 
         try
         {
-            InputTextBox.Text = File.ReadAllText(dialog.FileName);
-            ParseAndDraw(InputTextBox.Text);
+            string text = File.ReadAllText(dialog.FileName);
+            InputTextBox.Text = text;
+            ParseAndDraw(text);
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+            _currentPolygon = null;
+            DrawingCanvas.Children.Clear();
+            ResetStatus();
+            StatusTextBlock.Text = $"Помилка: {ex.Message}";
+
+            MessageBox.Show(
+                ex.Message,
+                "Помилка",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 
@@ -50,21 +62,58 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+            _currentPolygon = null;
+            DrawingCanvas.Children.Clear();
+            ResetStatus();
+            StatusTextBlock.Text = $"Помилка: {ex.Message}";
+
+            MessageBox.Show(
+                ex.Message,
+                "Помилка",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 
     private void ParseAndDraw(string text)
     {
         _currentPolygon = PolygonParser.ParseFromText(text);
+
         PolygonRenderer.Draw(DrawingCanvas, _currentPolygon);
+        UpdateStatus(_currentPolygon);
     }
 
     private void RedrawIfPossible()
     {
-        if (_currentPolygon is not null)
+        if (_currentPolygon is null)
         {
-            PolygonRenderer.Draw(DrawingCanvas, _currentPolygon);
+            return;
         }
+
+        PolygonRenderer.Draw(DrawingCanvas, _currentPolygon);
+        UpdateStatus(_currentPolygon);
+    }
+
+    private void UpdateStatus(OrthogonalPolygon polygon)
+    {
+        int n = polygon.Vertices.Count;
+        int reflexCount = polygon.GetReflexVertexIndices().Count;
+        int guardBound = n / 4;
+        string orientation = polygon.IsCounterClockwise() ? "CCW" : "CW";
+
+        VertexCountTextBlock.Text = n.ToString();
+        ReflexCountTextBlock.Text = reflexCount.ToString();
+        GuardBoundTextBlock.Text = guardBound.ToString();
+        OrientationTextBlock.Text = orientation;
+        StatusTextBlock.Text = "Багатокутник успішно побудовано";
+    }
+
+    private void ResetStatus()
+    {
+        VertexCountTextBlock.Text = "-";
+        ReflexCountTextBlock.Text = "-";
+        GuardBoundTextBlock.Text = "-";
+        OrientationTextBlock.Text = "-";
+        StatusTextBlock.Text = "Очікування введення";
     }
 }
