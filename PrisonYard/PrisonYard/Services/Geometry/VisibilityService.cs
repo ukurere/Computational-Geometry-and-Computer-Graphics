@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using PrisonYard.Models;
+using PrisonYard.Models.Geometry;
 
-namespace PrisonYard.Services;
+namespace PrisonYard.Services.Geometry;
 
 public static class VisibilityService
 {

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using PrisonYard.Models;
+using PrisonYard.Models.Geometry;
 
-namespace PrisonYard.Services;
+namespace PrisonYard.Services.Parsing;
 
 public static class PolygonParser
 {

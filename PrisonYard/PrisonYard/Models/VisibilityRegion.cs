@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PrisonYard.Models.Algorithm;
+using PrisonYard.Models.Geometry;
+using PrisonYard.Services.Demo;
+using PrisonYard.Services.Parsing;
+using PrisonYard.Services.Rendering;
 
 namespace PrisonYard.Models;
 

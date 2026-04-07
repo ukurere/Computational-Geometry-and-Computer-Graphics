@@ -5,8 +5,11 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
-using PrisonYard.Models;
-using PrisonYard.Services;
+using PrisonYard.Models.Algorithm;
+using PrisonYard.Models.Geometry;
+using PrisonYard.Services.Demo;
+using PrisonYard.Services.Parsing;
+using PrisonYard.Services.Rendering;
 
 namespace PrisonYard;
 
@@ -284,7 +287,7 @@ public partial class MainWindow : Window
 
     private void UpdateStatus(OrthogonalPolygon polygon)
     {
-        int n = polygon.Vertices.Count;
+        int n = polygon.VertexCount;
         int reflexCount = polygon.GetReflexVertexIndices().Count;
         int guardBound = n / 4;
         string orientation = polygon.IsCounterClockwise() ? "CCW" : "CW";

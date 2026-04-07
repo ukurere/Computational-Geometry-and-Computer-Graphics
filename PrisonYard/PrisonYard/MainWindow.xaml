@@ -2,45 +2,45 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Orthogonal Prison Yard"
-        Height="760"
-        Width="1200"
-        MinHeight="560"
-        MinWidth="900">
+        Height="820"
+        Width="1280"
+        MinHeight="600"
+        MinWidth="950">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="150"/>
+            <RowDefinition Height="170"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal"
-                    Margin="0,0,0,8">
-            <Button Width="150"
-                    Height="34"
+                    Margin="0,0,0,10">
+            <Button Width="160"
+                    Height="36"
                     Margin="0,0,10,0"
                     Content="Зчитати з файлу"
                     Click="LoadFromFile_Click"/>
 
-            <Button Width="200"
-                    Height="34"
+            <Button Width="220"
+                    Height="36"
                     Margin="0,0,10,0"
                     Content="Показати кроки алгоритму"
                     Click="BuildSteps_Click"/>
 
-            <Button Width="170"
-                    Height="34"
+            <Button Width="190"
+                    Height="36"
                     Content="Показати лише полігон"
                     Click="DrawPolygonOnly_Click"/>
         </StackPanel>
 
         <Border Grid.Row="1"
-                Margin="0,0,0,8"
+                Margin="0,0,0,10"
                 Padding="10"
                 BorderBrush="Black"
                 BorderThickness="1"
-                Background="#F5F5F5">
+                Background="#F6F6F6">
             <WrapPanel>
                 <TextBlock Text="Кількість вершин:"
                            FontWeight="SemiBold"/>
@@ -75,8 +75,8 @@
         </Border>
 
         <Border Grid.Row="2"
-                Margin="0,0,0,8"
-                Padding="10"
+                Margin="0,0,0,10"
+                Padding="12"
                 BorderBrush="Black"
                 BorderThickness="1"
                 Background="#FAFAFA">
@@ -89,16 +89,16 @@
 
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="PreviousStepButton"
-                            Width="100"
-                            Height="32"
-                            Margin="0,0,8,0"
+                            Width="110"
+                            Height="34"
+                            Margin="0,0,10,0"
                             Content="Назад"
                             Click="PreviousStep_Click"/>
 
                     <Button x:Name="NextStepButton"
-                            Width="100"
-                            Height="32"
-                            Margin="0,0,16,0"
+                            Width="110"
+                            Height="34"
+                            Margin="0,0,14,0"
                             Content="Далі"
                             Click="NextStep_Click"/>
 
@@ -110,40 +110,58 @@
 
                 <TextBlock x:Name="StepTitleTextBlock"
                            Grid.Row="1"
-                           Margin="0,10,0,0"
+                           Margin="0,12,0,0"
                            FontSize="18"
                            FontWeight="Bold"
                            Text="Крок алгоритму"/>
 
-                <TextBlock x:Name="StepDescriptionTextBlock"
-                           Grid.Row="2"
-                           Margin="0,8,0,0"
-                           TextWrapping="Wrap"
-                           Text="Опис кроку"/>
+                <Grid Grid.Row="2"
+                      Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <WrapPanel Grid.Row="2"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Bottom"
-                           Margin="0,8,0,0">
-                    <TextBlock Margin="0,0,8,0"
-                               VerticalAlignment="Center"
-                               Text="Легенда:"/>
-                    <TextBlock Margin="0,0,12,0"
-                               Foreground="DarkRed"
-                               FontWeight="SemiBold"
-                               Text="● Опукла"/>
-                    <TextBlock Margin="0,0,12,0"
-                               Foreground="Blue"
-                               FontWeight="SemiBold"
-                               Text="● Рефлексна"/>
-                    <TextBlock Margin="0,0,12,0"
-                               Foreground="DarkGoldenrod"
-                               FontWeight="SemiBold"
-                               Text="● Поточна"/>
-                    <TextBlock Foreground="DarkGreen"
-                               FontWeight="SemiBold"
-                               Text="● Камера"/>
-                </WrapPanel>
+                    <TextBlock x:Name="StepDescriptionTextBlock"
+                               Grid.Column="0"
+                               Margin="0,0,20,0"
+                               TextWrapping="Wrap"
+                               Text="Натисніть «Показати кроки алгоритму», щоб перейти до покрокового перегляду."/>
+
+                    <WrapPanel Grid.Column="1"
+                               VerticalAlignment="Bottom">
+                        <TextBlock Margin="0,0,8,0"
+                                   VerticalAlignment="Center"
+                                   Text="Легенда:"/>
+                        <TextBlock Margin="0,0,12,0"
+                                   Foreground="DarkRed"
+                                   FontWeight="SemiBold"
+                                   Text="● Опукла"/>
+                        <TextBlock Margin="0,0,12,0"
+                                   Foreground="Blue"
+                                   FontWeight="SemiBold"
+                                   Text="● Рефлексна"/>
+                        <TextBlock Margin="0,0,12,0"
+                                   Foreground="DarkGoldenrod"
+                                   FontWeight="SemiBold"
+                                   Text="● Поточна"/>
+                        <TextBlock Margin="0,0,12,0"
+                                   Foreground="IndianRed"
+                                   FontWeight="SemiBold"
+                                   Text="● Колір 0"/>
+                        <TextBlock Margin="0,0,12,0"
+                                   Foreground="SteelBlue"
+                                   FontWeight="SemiBold"
+                                   Text="● Колір 1"/>
+                        <TextBlock Margin="0,0,12,0"
+                                   Foreground="SeaGreen"
+                                   FontWeight="SemiBold"
+                                   Text="● Колір 2"/>
+                        <TextBlock Foreground="Goldenrod"
+                                   FontWeight="SemiBold"
+                                   Text="● Колір 3"/>
+                    </WrapPanel>
+                </Grid>
             </Grid>
         </Border>
 

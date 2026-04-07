@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PrisonYard.Models;
+namespace PrisonYard.Models.Geometry;
 
 public sealed class OrthogonalPolygon
 {
@@ -28,7 +28,9 @@ public sealed class OrthogonalPolygon
 
         if (list.Count < 4)
         {
-            throw new ArgumentException("Багатокутник повинен мати щонайменше 4 вершини.", nameof(vertices));
+            throw new ArgumentException(
+                "Багатокутник повинен мати щонайменше 4 вершини.",
+                nameof(vertices));
         }
 
         Validate(list);
@@ -151,6 +153,61 @@ public sealed class OrthogonalPolygon
             {
                 result.Add(i);
             }
+        }
+
+        return result;
+    }
+
+    public EdgeKind GetEdgeKind(int edgeIndex)
+    {
+        var edge = GetEdge(edgeIndex);
+
+        if (edge.IsHorizontal)
+        {
+            bool leftToRight = edge.End.X > edge.Start.X;
+
+            if (IsCounterClockwise())
+            {
+                return leftToRight ? EdgeKind.Bottom : EdgeKind.Top;
+            }
+
+            return leftToRight ? EdgeKind.Top : EdgeKind.Bottom;
+        }
+
+        if (edge.IsVertical)
+        {
+            bool bottomToTop = edge.End.Y > edge.Start.Y;
+
+            if (IsCounterClockwise())
+            {
+                return bottomToTop ? EdgeKind.Right : EdgeKind.Left;
+            }
+
+            return bottomToTop ? EdgeKind.Left : EdgeKind.Right;
+        }
+
+        return EdgeKind.Unknown;
+    }
+
+    public IReadOnlyList<HorizontalEdgeInfo> GetHorizontalEdges()
+    {
+        var result = new List<HorizontalEdgeInfo>();
+
+        for (int i = 0; i < VertexCount; i++)
+        {
+            var edge = GetEdge(i);
+
+            if (!edge.IsHorizontal)
+            {
+                continue;
+            }
+
+            result.Add(new HorizontalEdgeInfo(
+                edgeIndex: i,
+                startVertexIndex: i,
+                endVertexIndex: NormalizeIndex(i + 1),
+                edge: edge,
+                kind: GetEdgeKind(i)));
         }
 
         return result;

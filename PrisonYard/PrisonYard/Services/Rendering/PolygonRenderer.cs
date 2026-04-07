@@ -6,8 +6,10 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using PrisonYard.Models;
+using PrisonYard.Models.Algorithm;
+using PrisonYard.Models.Geometry;
 
-namespace PrisonYard.Services;
+namespace PrisonYard.Services.Rendering;
 
 public static class PolygonRenderer
 {
