@@ -60,10 +60,12 @@ public static class FourColoringService
 
         foreach (var quadrilateral in quadrilaterals)
         {
-            foreach (var diagonal in quadrilateral.GetDiagonals())
-            {
-                AddEdge(adjacency, diagonal.FromVertexIndex, diagonal.ToVertexIndex);
-            }
+            // Add all 6 pairs of the quadrilateral's vertices (K4) so that each
+            // quadrilateral gets 4 distinct colors — this guarantees ⌊n/4⌋ guards.
+            var v = quadrilateral.VertexIndices;
+            for (int i = 0; i < 4; i++)
+                for (int j = i + 1; j < 4; j++)
+                    AddEdge(adjacency, v[i], v[j]);
         }
 
         return adjacency;

@@ -113,25 +113,84 @@ public static class AlgorithmStepBuilder
             }
         }
 
+        var progressivePartitionDiagonals = new List<Diagonal>();
+
+        for (int i = 0; i < peaks.Count; i++)
+        {
+            var peak = peaks[i];
+
+            if (MonotonePartitionService.TryBuildDiagonalForPeak(
+                    polygon,
+                    peak,
+                    out var diagonal,
+                    out int targetEdgeIndex))
+            {
+                bool canAdd = MonotonePartitionService.CanAddPartitionDiagonal(
+                    polygon,
+                    diagonal,
+                    progressivePartitionDiagonals);
+
+                if (canAdd)
+                {
+                    progressivePartitionDiagonals.Add(diagonal.Normalize());
+                }
+
+                steps.Add(new AlgorithmStep
+                {
+                    ActionType = StepActionType.AddPartitionDiagonal,
+                    Title = $"Крок 7.{i + 1}. Розбиття для peak",
+                    Description = canAdd
+                        ? $"Для peak на ребрі {peak.EdgeIndex} знайдено цільове ребро {targetEdgeIndex}. Проведено діагональ {diagonal.FromVertexIndex}–{diagonal.ToVertexIndex}."
+                        : $"Для peak на ребрі {peak.EdgeIndex} знайдено цільове ребро {targetEdgeIndex}, але діагональ {diagonal.FromVertexIndex}–{diagonal.ToVertexIndex} не додано, бо вона конфліктує з уже проведеними діагоналями.",
+                    HighlightedVertexIndices = new[]
+                    {
+                        peak.LeftVertexIndex,
+                        peak.RightVertexIndex,
+                        diagonal.FromVertexIndex,
+                        diagonal.ToVertexIndex
+                    }.Distinct().ToList(),
+                    HighlightedEdgeIndices = new[] { peak.EdgeIndex, targetEdgeIndex },
+                    ReflexVertexIndices = reflexVertices,
+                    Diagonals = progressivePartitionDiagonals
+                        .Select(d => (d.FromVertexIndex, d.ToVertexIndex))
+                        .ToList(),
+                    ShowVertexIndices = true
+                });
+            }
+            else
+            {
+                steps.Add(new AlgorithmStep
+                {
+                    ActionType = StepActionType.AddPartitionDiagonal,
+                    Title = $"Крок 7.{i + 1}. Розбиття для peak",
+                    Description = $"Для peak на ребрі {peak.EdgeIndex} не вдалося знайти допустиму діагональ розбиття.",
+                    HighlightedVertexIndices = new[] { peak.LeftVertexIndex, peak.RightVertexIndex },
+                    HighlightedEdgeIndices = new[] { peak.EdgeIndex },
+                    ReflexVertexIndices = reflexVertices,
+                    Diagonals = progressivePartitionDiagonals
+                        .Select(d => (d.FromVertexIndex, d.ToVertexIndex))
+                        .ToList(),
+                    ShowVertexIndices = true
+                });
+            }
+        }
+
         var quadrangulationResult = QuadrangulationService.Quadrangulate(polygon);
         var partitionDiagonals = quadrangulationResult.PartitionDiagonals.ToList();
         var monotonePieces = quadrangulationResult.MonotonePieces.ToList();
         var quadrilaterals = quadrangulationResult.Quadrilaterals.ToList();
 
-        var progressiveDiagonals = new List<(int FromVertexIndex, int ToVertexIndex)>();
-
-        for (int i = 0; i < partitionDiagonals.Count; i++)
+        if (partitionDiagonals.Count > 0)
         {
-            var diagonal = partitionDiagonals[i];
-            progressiveDiagonals.Add((diagonal.FromVertexIndex, diagonal.ToVertexIndex));
-
             steps.Add(new AlgorithmStep
             {
-                ActionType = StepActionType.AddPartitionDiagonal,
-                Title = $"Крок 7.{i + 1}. Додано діагональ розбиття",
+                ActionType = StepActionType.BuildMonotonePiece,
+                Title = "Крок 8. Діагоналі розбиття побудовано",
                 Description =
-                    $"Додано діагональ між вершинами {diagonal.FromVertexIndex} і {diagonal.ToVertexIndex}.",
-                Diagonals = progressiveDiagonals.ToList(),
+                    $"Побудовано діагоналей розбиття: {partitionDiagonals.Count}. Наступний етап — відновлення псевдо-монотонних частин.",
+                Diagonals = partitionDiagonals
+                    .Select(diagonal => (diagonal.FromVertexIndex, diagonal.ToVertexIndex))
+                    .ToList(),
                 ReflexVertexIndices = reflexVertices,
                 ShowVertexIndices = true
             });
@@ -142,9 +201,12 @@ public static class AlgorithmStepBuilder
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.BuildMonotonePiece,
-                Title = "Крок 8. Отримано псевдо-монотонні частини",
-                Description = $"Побудовано частин: {monotonePieces.Count}.",
-                Diagonals = progressiveDiagonals.ToList(),
+                Title = "Крок 9. Отримано псевдо-монотонні частини",
+                Description =
+                    $"Побудовано частин: {monotonePieces.Count}. На поточному етапі програми це ще проміжний результат перед quadrilateralization.",
+                Diagonals = partitionDiagonals
+                    .Select(diagonal => (diagonal.FromVertexIndex, diagonal.ToVertexIndex))
+                    .ToList(),
                 ReflexVertexIndices = reflexVertices,
                 ShowVertexIndices = true
             });
@@ -158,13 +220,13 @@ public static class AlgorithmStepBuilder
                 .ToList();
 
             var quadrilateralGroups = quadrilaterals
-                .Select(q => (IReadOnlyList<int>)q.VertexIndices.ToList())
+                .Select(quadrilateral => (IReadOnlyList<int>)quadrilateral.VertexIndices.ToList())
                 .ToList();
 
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.BuildQuadrilateral,
-                Title = "Крок 9. Quadrilateralization",
+                Title = "Крок 10. Quadrilateralization",
                 Description = $"Побудовано опуклих чотирикутників: {quadrilaterals.Count}.",
                 Diagonals = quadrangulationDiagonals,
                 QuadrilateralVertexGroups = quadrilateralGroups,
@@ -177,7 +239,7 @@ public static class AlgorithmStepBuilder
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.ColorVertices,
-                Title = "Крок 10. 4-розфарбування вершин",
+                Title = "Крок 11. 4-розфарбування вершин",
                 Description = "Вершини графа quadrilateralization пофарбовано у 4 кольори.",
                 Diagonals = quadrangulationDiagonals,
                 QuadrilateralVertexGroups = quadrilateralGroups,

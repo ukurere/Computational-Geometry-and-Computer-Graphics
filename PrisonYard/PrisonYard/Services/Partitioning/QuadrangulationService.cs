@@ -38,7 +38,7 @@ public static class QuadrangulationService
         IReadOnlyList<Quadrilateral> quadrilaterals)
     {
         return quadrilaterals
-            .SelectMany(q => q.GetDiagonals())
+            .SelectMany(quadrilateral => quadrilateral.GetDiagonals())
             .Distinct()
             .ToList();
     }

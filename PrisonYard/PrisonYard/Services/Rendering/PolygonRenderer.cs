@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -23,30 +23,44 @@ public static class PolygonRenderer
         Color.FromRgb(255, 159, 64)
     ];
 
+    // Must match the legend colors shown in the UI (Колір 0..3)
+    private static readonly Brush[] ColoringBrushes =
+    [
+        new SolidColorBrush(Color.FromRgb(255, 165,   0)),  // Колір 0: Orange
+        new SolidColorBrush(Color.FromRgb(  0, 190, 190)),  // Колір 1: Cyan
+        new SolidColorBrush(Color.FromRgb(220,  80, 200)),  // Колір 2: Magenta
+        new SolidColorBrush(Color.FromRgb( 80, 180,  80)),  // Колір 3: Green
+    ];
+
+    private static readonly Color[] QuadPalette =
+    [
+        Color.FromArgb(55, 255, 165,   0),
+        Color.FromArgb(55,   0, 200, 200),
+        Color.FromArgb(55, 220,  80, 200),
+        Color.FromArgb(55, 100, 180, 100),
+        Color.FromArgb(55, 255, 220,   0),
+        Color.FromArgb(55, 100, 100, 255),
+    ];
+
     public static void Draw(Canvas canvas, OrthogonalPolygon polygon)
     {
         canvas.Children.Clear();
 
         if (polygon.Vertices.Count == 0)
-        {
             return;
-        }
 
         var transform = BuildTransform(canvas, polygon);
         if (transform is null)
-        {
             return;
-        }
 
         DrawPolygonFill(canvas, polygon, transform);
         DrawPolygonEdges(canvas, polygon, transform);
         DrawVertices(
-            canvas,
-            polygon,
-            transform,
+            canvas, polygon, transform,
             highlightedVertexIndices: Array.Empty<int>(),
             reflexVertexIndices: polygon.GetReflexVertexIndices(),
             cameraVertexIndices: Array.Empty<int>(),
+            coloring: null,
             showVertexIndices: false);
     }
 
@@ -55,27 +69,28 @@ public static class PolygonRenderer
         canvas.Children.Clear();
 
         if (polygon.Vertices.Count == 0)
-        {
             return;
-        }
 
         var transform = BuildTransform(canvas, polygon);
         if (transform is null)
-        {
             return;
-        }
 
         if (step.ShowPolygonFill)
-        {
             DrawPolygonFill(canvas, polygon, transform);
-        }
 
         DrawVisibilityRegions(canvas, transform, step.VisibilityRegions);
 
+        if (step.ShowQuadrilaterals && step.QuadrilateralVertexGroups.Count > 0)
+            DrawQuadrilateralFills(canvas, polygon, transform, step.QuadrilateralVertexGroups);
+
         if (step.ShowEdges)
-        {
             DrawPolygonEdges(canvas, polygon, transform);
-        }
+
+        if (step.HighlightedEdgeIndices.Count > 0)
+            DrawHighlightedEdges(canvas, polygon, transform, step.HighlightedEdgeIndices);
+
+        if (step.ShowDiagonals && step.Diagonals.Count > 0)
+            DrawDiagonals(canvas, polygon, transform, step.Diagonals);
 
         var cameraVertexIndices = step.Cameras
             .Select(camera => camera.VertexIndex)
@@ -83,12 +98,11 @@ public static class PolygonRenderer
             .ToArray();
 
         DrawVertices(
-            canvas,
-            polygon,
-            transform,
+            canvas, polygon, transform,
             highlightedVertexIndices: step.HighlightedVertexIndices,
             reflexVertexIndices: step.ReflexVertexIndices,
             cameraVertexIndices: cameraVertexIndices,
+            coloring: step.ShowColors ? step.Coloring : null,
             showVertexIndices: step.ShowVertexIndices);
 
         DrawCameraLabels(canvas, transform, step.Cameras);
@@ -100,9 +114,7 @@ public static class PolygonRenderer
         double canvasHeight = canvas.ActualHeight;
 
         if (canvasWidth <= 0 || canvasHeight <= 0)
-        {
             return null;
-        }
 
         const double padding = 20.0;
 
@@ -131,30 +143,95 @@ public static class PolygonRenderer
     {
         var points = new PointCollection(polygon.Vertices.Select(transform.ToScreen));
 
-        var polygonShape = new Polygon
+        canvas.Children.Add(new Polygon
         {
             Points = points,
             Fill = Brushes.LightGray,
             Stroke = Brushes.Transparent,
             StrokeThickness = 0
-        };
-
-        canvas.Children.Add(polygonShape);
+        });
     }
 
     private static void DrawPolygonEdges(Canvas canvas, OrthogonalPolygon polygon, ViewTransform transform)
     {
         var points = new PointCollection(polygon.Vertices.Select(transform.ToScreen));
 
-        var polygonShape = new Polygon
+        canvas.Children.Add(new Polygon
         {
             Points = points,
             Fill = Brushes.Transparent,
             Stroke = Brushes.Black,
             StrokeThickness = 2
-        };
+        });
+    }
 
-        canvas.Children.Add(polygonShape);
+    private static void DrawHighlightedEdges(
+        Canvas canvas,
+        OrthogonalPolygon polygon,
+        ViewTransform transform,
+        IReadOnlyList<int> edgeIndices)
+    {
+        foreach (int edgeIndex in edgeIndices)
+        {
+            var edge = polygon.GetEdge(edgeIndex);
+            var p1 = transform.ToScreen(edge.Start);
+            var p2 = transform.ToScreen(edge.End);
+
+            canvas.Children.Add(new Line
+            {
+                X1 = p1.X, Y1 = p1.Y,
+                X2 = p2.X, Y2 = p2.Y,
+                Stroke = Brushes.DarkOrange,
+                StrokeThickness = 4
+            });
+        }
+    }
+
+    private static void DrawDiagonals(
+        Canvas canvas,
+        OrthogonalPolygon polygon,
+        ViewTransform transform,
+        IReadOnlyList<(int FromVertexIndex, int ToVertexIndex)> diagonals)
+    {
+        foreach (var (from, to) in diagonals)
+        {
+            var p1 = transform.ToScreen(polygon.GetVertex(from));
+            var p2 = transform.ToScreen(polygon.GetVertex(to));
+
+            canvas.Children.Add(new Line
+            {
+                X1 = p1.X, Y1 = p1.Y,
+                X2 = p2.X, Y2 = p2.Y,
+                Stroke = new SolidColorBrush(Color.FromRgb(100, 0, 180)),
+                StrokeThickness = 1.5,
+                StrokeDashArray = new DoubleCollection { 5, 3 }
+            });
+        }
+    }
+
+    private static void DrawQuadrilateralFills(
+        Canvas canvas,
+        OrthogonalPolygon polygon,
+        ViewTransform transform,
+        IReadOnlyList<IReadOnlyList<int>> quadrilateralGroups)
+    {
+        for (int i = 0; i < quadrilateralGroups.Count; i++)
+        {
+            var group = quadrilateralGroups[i];
+            var points = new PointCollection(
+                group.Select(idx => transform.ToScreen(polygon.GetVertex(idx))));
+
+            var color = QuadPalette[i % QuadPalette.Length];
+
+            canvas.Children.Add(new Polygon
+            {
+                Points = points,
+                Fill = new SolidColorBrush(color),
+                Stroke = new SolidColorBrush(Color.FromRgb(100, 0, 180)),
+                StrokeThickness = 1.2,
+                StrokeDashArray = new DoubleCollection { 5, 3 }
+            });
+        }
     }
 
     private static void DrawVisibilityRegions(
@@ -167,23 +244,19 @@ public static class PolygonRenderer
             var region = regions[i];
 
             if (region.BoundaryPoints.Count < 3)
-            {
                 continue;
-            }
 
             Color baseColor = RegionPalette[i % RegionPalette.Length];
             Brush fillBrush = new SolidColorBrush(Color.FromArgb(120, baseColor.R, baseColor.G, baseColor.B));
             Brush strokeBrush = new SolidColorBrush(baseColor);
 
-            var regionShape = new Polygon
+            canvas.Children.Add(new Polygon
             {
                 Points = new PointCollection(region.BoundaryPoints.Select(transform.ToScreen)),
                 Fill = fillBrush,
                 Stroke = strokeBrush,
                 StrokeThickness = 1.5
-            };
-
-            canvas.Children.Add(regionShape);
+            });
         }
     }
 
@@ -194,6 +267,7 @@ public static class PolygonRenderer
         IReadOnlyList<int> highlightedVertexIndices,
         IReadOnlyList<int> reflexVertexIndices,
         IReadOnlyList<int> cameraVertexIndices,
+        ColoringResult? coloring,
         bool showVertexIndices)
     {
         var highlighted = new HashSet<int>(highlightedVertexIndices);
@@ -203,7 +277,7 @@ public static class PolygonRenderer
         for (int i = 0; i < polygon.Vertices.Count; i++)
         {
             var point = transform.ToScreen(polygon.Vertices[i]);
-            Brush fill = GetVertexBrush(i, highlighted, cameras, reflex, polygon);
+            Brush fill = GetVertexBrush(i, highlighted, cameras, reflex, coloring, polygon);
 
             double size = cameras.Contains(i) ? 14 : 10;
 
@@ -267,22 +341,20 @@ public static class PolygonRenderer
         HashSet<int> highlighted,
         HashSet<int> cameras,
         HashSet<int> reflex,
+        ColoringResult? coloring,
         OrthogonalPolygon polygon)
     {
         if (highlighted.Contains(index))
-        {
             return Brushes.DarkGoldenrod;
-        }
 
         if (cameras.Contains(index))
-        {
             return Brushes.DarkGreen;
-        }
+
+        if (coloring is not null && coloring.VertexColors.TryGetValue(index, out int color))
+            return ColoringBrushes[color % ColoringBrushes.Length];
 
         if (reflex.Contains(index))
-        {
             return Brushes.Blue;
-        }
 
         return polygon.GetVertexKind(index) == VertexKind.Reflex
             ? Brushes.Blue
@@ -306,16 +378,10 @@ public static class PolygonRenderer
             _scale = scale;
         }
 
-        public Point ToScreen(Vertex vertex)
-        {
-            return ToScreen(new Point2D(vertex.X, vertex.Y));
-        }
+        public Point ToScreen(Vertex vertex) => ToScreen(new Point2D(vertex.X, vertex.Y));
 
-        public Point ToScreen(Point2D point)
-        {
-            return new Point(
-                _offsetX + (point.X - _minX) * _scale,
-                _offsetY + (_maxY - point.Y) * _scale);
-        }
+        public Point ToScreen(Point2D point) => new(
+            _offsetX + (point.X - _minX) * _scale,
+            _offsetY + (_maxY - point.Y) * _scale);
     }
 }
