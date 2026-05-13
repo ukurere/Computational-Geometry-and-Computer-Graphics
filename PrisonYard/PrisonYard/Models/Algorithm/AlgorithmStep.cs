@@ -22,6 +22,8 @@ public sealed class AlgorithmStep
     public IReadOnlyList<(int FromVertexIndex, int ToVertexIndex)> Diagonals { get; init; } = [];
     public IReadOnlyList<IReadOnlyList<int>> QuadrilateralVertexGroups { get; init; } = [];
 
+    public string Answer { get; init; } = string.Empty;
+
     public IReadOnlyList<CameraPlacement> Cameras { get; init; } = [];
     public IReadOnlyList<VisibilityRegion> VisibilityRegions { get; init; } = [];
 

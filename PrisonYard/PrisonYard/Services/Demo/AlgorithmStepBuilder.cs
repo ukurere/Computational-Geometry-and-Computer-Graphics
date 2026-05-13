@@ -39,33 +39,17 @@ public static class AlgorithmStepBuilder
 
         steps.Add(new AlgorithmStep
         {
-            ActionType = StepActionType.DetectOrientation,
-            Title = "Крок 2. Орієнтація обходу",
-            Description = $"Орієнтація обходу контуру: {PolygonAnalysisService.GetOrientationLabel(polygon)}.",
+            ActionType = StepActionType.DetectReflexVertices,
+            Title = "Крок 2. Класифікація вершин",
+            Description = $"Рефлексних вершин: {reflexVertices.Count}, опуклих: {polygon.VertexCount - reflexVertices.Count}.",
+            ReflexVertexIndices = reflexVertices,
             ShowVertexIndices = true
         });
-
-        for (int i = 0; i < polygon.VertexCount; i++)
-        {
-            var kind = polygon.GetVertexKind(i);
-
-            steps.Add(new AlgorithmStep
-            {
-                ActionType = StepActionType.DetectReflexVertices,
-                Title = $"Крок 3.{i + 1}. Аналіз вершини {i}",
-                Description = kind == VertexKind.Reflex
-                    ? $"Вершина {i} є рефлексною."
-                    : $"Вершина {i} є опуклою.",
-                HighlightedVertexIndices = new[] { i },
-                ReflexVertexIndices = reflexVertices,
-                ShowVertexIndices = true
-            });
-        }
 
         steps.Add(new AlgorithmStep
         {
             ActionType = StepActionType.DetectHorizontalEdges,
-            Title = "Крок 4. Верхні горизонтальні ребра",
+            Title = "Крок 3. Верхні горизонтальні ребра",
             Description = "Показано всі горизонтальні ребра типу Top.",
             HighlightedEdgeIndices = topEdges,
             ReflexVertexIndices = reflexVertices,
@@ -75,7 +59,7 @@ public static class AlgorithmStepBuilder
         steps.Add(new AlgorithmStep
         {
             ActionType = StepActionType.DetectHorizontalEdges,
-            Title = "Крок 5. Нижні горизонтальні ребра",
+            Title = "Крок 4. Нижні горизонтальні ребра",
             Description = "Показано всі горизонтальні ребра типу Bottom.",
             HighlightedEdgeIndices = bottomEdges,
             ReflexVertexIndices = reflexVertices,
@@ -87,7 +71,7 @@ public static class AlgorithmStepBuilder
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.DetectPeaks,
-                Title = "Крок 6. Піки не знайдено",
+                Title = "Крок 5. Піки не знайдено",
                 Description = "У цьому багатокутнику не виявлено top/bottom peaks.",
                 ReflexVertexIndices = reflexVertices,
                 ShowVertexIndices = true
@@ -102,7 +86,7 @@ public static class AlgorithmStepBuilder
                 steps.Add(new AlgorithmStep
                 {
                     ActionType = StepActionType.DetectPeaks,
-                    Title = $"Крок 6.{i + 1}. Знайдено peak",
+                    Title = $"Крок 5.{i + 1}. Знайдено peak",
                     Description =
                         $"Peak типу {peak.Kind} на ребрі {peak.EdgeIndex} між вершинами {peak.LeftVertexIndex} і {peak.RightVertexIndex}.",
                     HighlightedVertexIndices = new[] { peak.LeftVertexIndex, peak.RightVertexIndex },
@@ -138,7 +122,7 @@ public static class AlgorithmStepBuilder
                 steps.Add(new AlgorithmStep
                 {
                     ActionType = StepActionType.AddPartitionDiagonal,
-                    Title = $"Крок 7.{i + 1}. Розбиття для peak",
+                    Title = $"Крок 6.{i + 1}. Розбиття для peak",
                     Description = canAdd
                         ? $"Для peak на ребрі {peak.EdgeIndex} знайдено цільове ребро {targetEdgeIndex}. Проведено діагональ {diagonal.FromVertexIndex}–{diagonal.ToVertexIndex}."
                         : $"Для peak на ребрі {peak.EdgeIndex} знайдено цільове ребро {targetEdgeIndex}, але діагональ {diagonal.FromVertexIndex}–{diagonal.ToVertexIndex} не додано, бо вона конфліктує з уже проведеними діагоналями.",
@@ -162,7 +146,7 @@ public static class AlgorithmStepBuilder
                 steps.Add(new AlgorithmStep
                 {
                     ActionType = StepActionType.AddPartitionDiagonal,
-                    Title = $"Крок 7.{i + 1}. Розбиття для peak",
+                    Title = $"Крок 6.{i + 1}. Розбиття для peak",
                     Description = $"Для peak на ребрі {peak.EdgeIndex} не вдалося знайти допустиму діагональ розбиття.",
                     HighlightedVertexIndices = new[] { peak.LeftVertexIndex, peak.RightVertexIndex },
                     HighlightedEdgeIndices = new[] { peak.EdgeIndex },
@@ -185,7 +169,7 @@ public static class AlgorithmStepBuilder
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.BuildMonotonePiece,
-                Title = "Крок 8. Діагоналі розбиття побудовано",
+                Title = "Крок 7. Діагоналі розбиття побудовано",
                 Description =
                     $"Побудовано діагоналей розбиття: {partitionDiagonals.Count}. Наступний етап — відновлення псевдо-монотонних частин.",
                 Diagonals = partitionDiagonals
@@ -201,7 +185,7 @@ public static class AlgorithmStepBuilder
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.BuildMonotonePiece,
-                Title = "Крок 9. Отримано псевдо-монотонні частини",
+                Title = "Крок 8. Отримано псевдо-монотонні частини",
                 Description =
                     $"Побудовано частин: {monotonePieces.Count}. На поточному етапі програми це ще проміжний результат перед quadrilateralization.",
                 Diagonals = partitionDiagonals
@@ -226,7 +210,7 @@ public static class AlgorithmStepBuilder
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.BuildQuadrilateral,
-                Title = "Крок 10. Quadrilateralization",
+                Title = "Крок 9. Quadrilateralization",
                 Description = $"Побудовано опуклих чотирикутників: {quadrilaterals.Count}.",
                 Diagonals = quadrangulationDiagonals,
                 QuadrilateralVertexGroups = quadrilateralGroups,
@@ -239,7 +223,7 @@ public static class AlgorithmStepBuilder
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.ColorVertices,
-                Title = "Крок 11. 4-розфарбування вершин",
+                Title = "Крок 10. 4-розфарбування вершин",
                 Description = "Вершини графа quadrilateralization пофарбовано у 4 кольори.",
                 Diagonals = quadrangulationDiagonals,
                 QuadrilateralVertexGroups = quadrilateralGroups,
@@ -252,12 +236,21 @@ public static class AlgorithmStepBuilder
             var guardVertices = coloring.GetGuardVertices().ToList();
             string guardVerticesText = string.Join(", ", guardVertices);
 
+            string[] colorNames = ["Помаранчеві", "Блакитні", "Рожеві", "Зелені"];
+            string guardColorName = coloring.SelectedGuardColor < colorNames.Length
+                ? colorNames[coloring.SelectedGuardColor]
+                : $"Колір {coloring.SelectedGuardColor}";
+
+            string answer =
+                $"Відповідь: мінімальна кількість камер, що потрібно — {guardVertices.Count}.\n" +
+                $"{guardColorName}: [{string.Join(", ", guardVertices)}]";
+
             steps.Add(new AlgorithmStep
             {
                 ActionType = StepActionType.SelectGuardColor,
                 Title = "Фінальний крок. Вибір найменшого кольорового класу",
-                Description =
-                    $"Найменший кольоровий клас: {coloring.SelectedGuardColor}. Вершини для камер: {guardVerticesText}.",
+                Description = $"Найменший кольоровий клас: {coloring.SelectedGuardColor}. Вершини для камер: {guardVerticesText}.",
+                Answer = answer,
                 Diagonals = quadrangulationDiagonals,
                 QuadrilateralVertexGroups = quadrilateralGroups,
                 ReflexVertexIndices = reflexVertices,

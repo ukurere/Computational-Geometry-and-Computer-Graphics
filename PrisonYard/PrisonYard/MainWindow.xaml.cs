@@ -243,6 +243,17 @@ public partial class MainWindow : Window
         StepDescriptionTextBlock.Text = step.Description;
         StepCounterTextBlock.Text = $"Крок: {_currentStepIndex + 1} / {_algorithmRun.Steps.Count}";
 
+        if (!string.IsNullOrEmpty(step.Answer))
+        {
+            AnswerTextBlock.Text = step.Answer;
+            AnswerTextBlock.Visibility = System.Windows.Visibility.Visible;
+        }
+        else
+        {
+            AnswerTextBlock.Text = string.Empty;
+            AnswerTextBlock.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
         PolygonRenderer.DrawStep(DrawingCanvas, _algorithmRun.Polygon, step);
 
         UpdateStepNavigationButtons();
@@ -288,14 +299,10 @@ public partial class MainWindow : Window
     private void UpdateStatus(OrthogonalPolygon polygon)
     {
         int n = polygon.VertexCount;
-        int reflexCount = polygon.GetReflexVertexIndices().Count;
         int guardBound = n / 4;
-        string orientation = polygon.IsCounterClockwise() ? "CCW" : "CW";
 
         VertexCountTextBlock.Text = n.ToString();
-        ReflexCountTextBlock.Text = reflexCount.ToString();
         GuardBoundTextBlock.Text = guardBound.ToString();
-        OrientationTextBlock.Text = orientation;
 
         StatusTextBlock.Text = "Багатокутник успішно побудовано";
         StatusTextBlock.Foreground = Brushes.DarkGreen;
@@ -304,9 +311,7 @@ public partial class MainWindow : Window
     private void ResetStatus()
     {
         VertexCountTextBlock.Text = "-";
-        ReflexCountTextBlock.Text = "-";
         GuardBoundTextBlock.Text = "-";
-        OrientationTextBlock.Text = "-";
 
         StatusTextBlock.Text = "Очікування введення";
         StatusTextBlock.Foreground = Brushes.Black;
@@ -319,9 +324,7 @@ public partial class MainWindow : Window
     private void SetInvalidState(string errorMessage)
     {
         VertexCountTextBlock.Text = "-";
-        ReflexCountTextBlock.Text = "-";
         GuardBoundTextBlock.Text = "-";
-        OrientationTextBlock.Text = "-";
 
         StatusTextBlock.Text = $"Помилка: {errorMessage}";
         StatusTextBlock.Foreground = Brushes.DarkRed;
@@ -333,7 +336,7 @@ public partial class MainWindow : Window
     {
         StepTitleTextBlock.Text = "Крок алгоритму";
         StepDescriptionTextBlock.Text =
-            "Натисніть «Показати кроки алгоритму», щоб перейти до покрокового перегляду.";
+            "Натисніть «Старт», щоб перейти до покрокового перегляду.";
         StepCounterTextBlock.Text = "Крок: - / -";
     }
 

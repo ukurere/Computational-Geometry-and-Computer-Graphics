@@ -353,12 +353,13 @@ public static class PolygonRenderer
         if (coloring is not null && coloring.VertexColors.TryGetValue(index, out int color))
             return ColoringBrushes[color % ColoringBrushes.Length];
 
-        if (reflex.Contains(index))
-            return Brushes.Blue;
+        // Show reflex/convex colors only when ReflexVertexIndices was explicitly provided
+        if (reflex.Count > 0)
+        {
+            return reflex.Contains(index) ? Brushes.Blue : Brushes.DarkRed;
+        }
 
-        return polygon.GetVertexKind(index) == VertexKind.Reflex
-            ? Brushes.Blue
-            : Brushes.DarkRed;
+        return Brushes.Black;
     }
 
     private sealed class ViewTransform
